@@ -1,0 +1,24 @@
+name: build-docker
+on:
+  push:
+    paths:
+      - 'docker/**'
+    branches:
+      - main
+jobs:
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: build docker image
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(cat docker/version)
+          DOCKER_REPO=ghcr.io
+          IMAGE_TAG=$DOCKER_REPO/$GITHUB_REPOSITORY:$VERSION
+          echo $IMAGE_TAG
+          echo $GITHUB_TOKEN | docker login --username $GITHUB_REPOSITORY --password-stdin $DOCKER_REPO
+          cd docker
+          docker build . --pull -t $IMAGE_TAG
+          docker push $IMAGE_TAG
